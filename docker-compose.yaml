@@ -1,0 +1,73 @@
+version: '3.8'
+
+services:
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+    depends_on:
+      - primary-backend
+
+  primary-backend:
+    build:
+      context: ./primary-backend
+      dockerfile: Dockerfile
+    ports:
+      - "4000:4000"
+    environment:
+      - NODE_ENV=production
+    env_file:
+      - ./primary-backend/.env
+    depends_on:
+      - postgres
+
+  processor:
+    build:
+      context: ./processor
+      dockerfile: Dockerfile
+    environment:
+      - NODE_ENV=production
+    env_file:
+      - ./processor/.env
+    depends_on:
+      - postgres
+
+  worker:
+    build:
+      context: ./worker
+      dockerfile: Dockerfile
+    environment:
+      - NODE_ENV=production
+    env_file:
+      - ./worker/.env
+    depends_on:
+      - postgres
+
+  hooks:
+    build:
+      context: ./hooks
+      dockerfile: Dockerfile
+    environment:
+      - NODE_ENV=production
+    env_file:
+      - ./hooks/.env
+    depends_on:
+      - postgres
+
+  postgres:
+    image: postgres:15-alpine
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=zapier
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+volumes:
+  postgres_data: 
